@@ -1,0 +1,6 @@
+Network stats are read in through SmArtsGardenNetStats.java
+Network stats are written to text file.
+Predetermined "framework" score is loaded into jmusic
+	//working on this in MUSC 315
+Network stats are processed algorithmically into a jmusic part/phrases
+Generated part is added to 
