@@ -33,9 +33,11 @@ import abc.notation.TimeSignature;
 import abc.notation.Tune;
 import abc.ui.swing.JScoreComponent;
 
-/**
+/**  
+ * Generates music based on the statistics gathered about web site load times.
+ * 
  * @author spensermorgan
- *
+ * 
  */
 public class SmArtsGarden implements JMC {
 	long time1, time2;
@@ -48,8 +50,10 @@ public class SmArtsGarden implements JMC {
 	Part sax = new Part("Saxaphone", ALTO_SAXOPHONE, 1);
 	Phrase phr = new Phrase("Saxaphone");
 
-	// Constructor for SmArts Garden
-	SmArtsGarden() {
+	/**
+	 * Constructor for SmArtsGarden
+	 */
+	public SmArtsGarden() {
 
 		// NetStats stats = new NetStats();
 		// String stat = stats.getSite();
@@ -129,9 +133,6 @@ public class SmArtsGarden implements JMC {
 
 	}
 
-	public void numberHolder() {
-
-	}
 
 	public static void main(String[] args) {
 		new SmArtsGarden();
@@ -143,7 +144,12 @@ public class SmArtsGarden implements JMC {
 		// theApplet.start();
 		// theFrame.setVisible(true);
 	}
-
+/**
+ * 
+ * @param l Long - a stored value of the time it took to load a website.
+ * @param position (decimal place) of a digit in the Long (tens, hundreds, thousands place) 
+ * @return a single integer value based on the position that is passed in parameters.
+ */
 	public int valueAtPosition(Long l, int position) {
 		int forReturn;
 		char[] eachDigit;
