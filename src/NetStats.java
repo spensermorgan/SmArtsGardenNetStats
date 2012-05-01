@@ -17,7 +17,7 @@ public class NetStats {
 	public String favoriteSites(int favoriteIndex) {
 		String[] sites = { "http://google.com", "http://facebook.com",
 				"http://twitter.com", "http://instagr.am", "http://cnu.edu",
-				"http://joomla.org" };
+				"http://joomla.org", "http://amazon.com", "http://wikipedia.org", "http://youtube.com", "http://flickr.com" };
 		return sites[favoriteIndex];
 	}
 
@@ -27,7 +27,7 @@ public class NetStats {
 	public String getSiteURL() {
 		String site = "";
 		Random random = new Random();
-		int randomInt = random.nextInt(6);
+		int randomInt = random.nextInt(9);
 		site = favoriteSites(randomInt);
 		System.out.println(site);
 		return site;
@@ -50,7 +50,10 @@ public class NetStats {
 				URLConnection connection = url.openConnection();
 				connection.getContent();
 				pageLoadTime = System.nanoTime() - time1;
+				
 				stats[i] = pageLoadTime;
+				System.out.println(stats[i]);
+				
 
 			} catch (MalformedURLException e) {
 				System.out.println("URL not found or incorrect");
@@ -60,7 +63,7 @@ public class NetStats {
 				e.printStackTrace();
 			}
 		}
-
+		
 		return stats;
 	}
 

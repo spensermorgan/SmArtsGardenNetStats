@@ -1,16 +1,26 @@
 import java.applet.Applet;
 
+import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JWindow;
 
 import jm.JMC;
 import jm.gui.cpn.GrandStave;
@@ -39,9 +49,12 @@ import abc.ui.swing.JScoreComponent;
  * @author spensermorgan
  * 
  */
-public class SmArtsGarden implements JMC {
+public class SmArtsGarden extends JFrame implements ActionListener, JMC {
 	long time1, time2;
-	Long[] times;
+	Long[] times, stats1;
+	int numsites = 48; 
+	double[] norms = new double[numsites];
+	
 	int i;
 	// ArrayList netstats = new ArrayList();
 
@@ -49,11 +62,13 @@ public class SmArtsGarden implements JMC {
 	static Score score = new Score("Sax", ALTO_SAXOPHONE);
 	Part sax = new Part("Saxaphone", ALTO_SAXOPHONE, 1);
 	Phrase phr = new Phrase("Saxaphone");
+	TunePlayer player = new TunePlayer();
+	Tune tune = new Tune();
 
 	/**
 	 * Constructor for SmArtsGarden
 	 */
-	public SmArtsGarden() {
+	public SmArtsGarden(){
 
 		// NetStats stats = new NetStats();
 		// String stat = stats.getSite();
@@ -67,15 +82,34 @@ public class SmArtsGarden implements JMC {
 		// time2 = System.nanoTime();
 		NetStats stats = new NetStats();
 
-		times = stats.siteStats(stats, 48);
-		Tune tune = new Tune();
+		times = stats.siteStats(stats, numsites);
+		stats1 = new Long[numsites];
+//		Container c = new Container();
+//		c.ggetContentPanel();
+//		
+//		JWindow pop = new JWindow();
+//		
+		JFrame frame = new JFrame();
+		frame.setSize(500, 100);
+		frame.setLocation(100, 400);
+		frame.setLayout(new FlowLayout());
+		JLabel f1 = new JLabel("Would you like to play the song now?");
+		frame.add(f1);
+		JButton button1 = new JButton("Play live.");
+		button1.addActionListener(this);
+		frame.add(button1);
+		frame.setVisible(true);
+		double[] normal = normalizer(times);
+		for(long i : times)
+			System.out.println(i);
+		
 		KeySignature key = new KeySignature(abc.notation.Note.C,
 				KeySignature.MAJOR);
 		tune.getMusic().addElement(key);
 		Tune.Music music = tune.getMusic();
-		music.setSize(24);
+//		music.setSize(24);
 		// music.addElement(arg0)
-		pitchChooser(music);
+		pitchChooser(music, normal);
 //		
 
 		// sax.add(phr);
@@ -90,12 +124,17 @@ public class SmArtsGarden implements JMC {
 		j.add(scoreUI);
 		j.pack();
 		j.setVisible(true);
-		TunePlayer player = new TunePlayer();
+//		TunePlayer player = new TunePlayer();
+		
 		// starts the player and play the tune
 		player.start();
-		player.play(tune);
+//		player.play(tune);
 		// The midi file result
-		File file = new File("test.mid");
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); 
+		String dateStr = sdf.format(cal.getTime());
+//		cal.getTime()
+		File file = new File("test"+cal.getTime()+".mid");
 		// Create a converter to convert a tune into midi sequence
 		MidiConverterAbstract conv = new BasicMidiConverter();
 		// convert it !
@@ -118,7 +157,6 @@ public class SmArtsGarden implements JMC {
 		// GrandStave stave = new GrandStave(phr);
 		// stave.setVisible(true);
 
-		// Play.midi(phr);
 		// long bleh = times[0]/100000;
 
 		// System.out.println(bleh);
@@ -132,7 +170,12 @@ public class SmArtsGarden implements JMC {
 		// }
 
 	}
-
+	public void actionPerformed (ActionEvent e){
+		System.out.println("playing");
+//		player.start();
+		player.play(tune);
+			
+	}
 
 	public static void main(String[] args) {
 		new SmArtsGarden();
@@ -190,8 +233,65 @@ public class SmArtsGarden implements JMC {
 		return rhythm;
 
 	}
-	
-	public void pitchChooser(Tune.Music music){
+	/**
+	 * 
+	 * @param inum
+	 * @param normal - array of doubles normalized from the times array using normalizer();
+	 * @return the rhythm value to be played depending on the speed of page load times. 
+	 */
+	public short durationPicker1(int inum, double[] normal) {
+		short rhythm = Note.HALF;
+		inum = i;
+		if (normal[inum] == 0) {
+			// rhythm = "WHOLE";
+			// i = i+4;
+			return Note.SIXTEENTH;
+		} else if (normal[inum] <= .3) {
+			// rhythm = "HALF";
+			// i = i+2;
+			return Note.SIXTEENTH;
+
+		} else if (normal[inum] <= .4) {
+			// rhythm = "QUARTER";
+			// i = i+1;
+			
+			
+			return Note.EIGHTH;
+		} else if (normal[inum] <= .6){
+			return Note.QUARTER;
+			
+		} else if (normal[inum] <= .9){
+			return Note.WHOLE;
+		} else{
+			return rhythm;
+		}
+		
+
+//		return rhythm;
+
+	}
+	public double[] normalizer(Long[] statArray){
+		Long[] ary=statArray.clone();
+		double[] normAry = new double[statArray.length];
+		long high = 0, current;
+		
+		for(int x = 0; x < ary.length;x++){
+			current = ary[x];
+			if (high < current){
+				high = current;
+			}
+		}
+		double highest = (double)high;
+//		System.out.println("Max value is:" + highest);
+		
+		for (i = 0; i < ary.length; i++){
+			normAry[i] = (double)ary[i]/(highest);
+//			System.out.println(normAry);
+		}
+		return normAry;
+	}
+
+	public void pitchChooser(Tune.Music music, double[] normal){
 		for (i = 0; i < times.length; i++) {
 
 			// times[i] = getGoogleStat(i);
@@ -203,14 +303,22 @@ public class SmArtsGarden implements JMC {
 			// if (i%4 == 0 && i != 0){
 			// music.add(new BarLine());
 			// }
-
-			int num = valueAtPosition(times[i], 2);
+			int num;
+			if(times[i] > 10){
+			num = valueAtPosition(times[i], 1);
+			}
+			else{
+			num = valueAtPosition(times[i], 0);
+			}
 			System.out.println(num);
 			if (num == 0 || num == 1) {
 				Note n1 = new Note(Note.C);
+				
 				// n1.setStrictDuration(Note.QUARTER);
 				//
-				n1.setStrictDuration(durationPicker(i));
+				n1.setStrictDuration(durationPicker1(i, normal));
+//				music.set(1, PENTATONIC_SCALE);
+//				music.addElement()
 
 				// Note n1 = new Note(C4, QUARTER_NOTE);
 				music.addElement(n1);
@@ -221,8 +329,8 @@ public class SmArtsGarden implements JMC {
 			if (num == 2 || num == 3) {
 				// Note n1 = new Note(D4, QUARTER_NOTE);
 				Note n1 = new Note(Note.D);
-				// n1.setStrictDuration(Note.QUARTER);
-				n1.setStrictDuration(durationPicker(i));
+				// n1.setStrictDuration(Note.QUARTER); 
+				n1.setStrictDuration(durationPicker1(i, normal));
 
 				music.addElement(n1);
 				// phr.add(n1);
@@ -233,7 +341,9 @@ public class SmArtsGarden implements JMC {
 				// Note n1 = new Note(E4, QUARTER_NOTE);
 				Note n1 = new Note(Note.E);
 				// n1.setStrictDuration(Note.QUARTER);
-				n1.setStrictDuration(durationPicker(i));
+//				n1.setStrictDuration(durationPicker1(i));
+				n1.setStrictDuration(durationPicker1(i, normal));
+
 
 				music.addElement(n1);
 				// phr.add(n1);
@@ -245,7 +355,8 @@ public class SmArtsGarden implements JMC {
 				// Note n1 = new Note(G4, QUARTER_NOTE);
 				Note n1 = new Note(Note.G);
 				// n1.setStrictDuration(Note.QUARTER);
-				n1.setStrictDuration(durationPicker(i));
+//				n1.setStrictDuration(durationPicker(i));
+				n1.setStrictDuration(durationPicker1(i, normal));
 
 				music.addElement(n1);
 
@@ -258,7 +369,9 @@ public class SmArtsGarden implements JMC {
 				// Note n1 = new Note(A4, QUARTER_NOTE);
 				Note n1 = new Note(Note.A);
 				// n1.setStrictDuration(Note.QUARTER);
-				n1.setStrictDuration(durationPicker(i));
+//				n1.setStrictDuration(durationPicker(i));
+				n1.setStrictDuration(durationPicker1(i, normal));
+
 
 				music.addElement(n1);
 
